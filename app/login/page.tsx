@@ -11,30 +11,32 @@ export default async function LoginPage({
     <main className="shell">
       <form className="form">
         <div>
-          <div className="eyebrow">Revanoq workspace</div>
-          <h1>Sign in</h1>
-          <p className="muted">Use your work email to access freight audit data.</p>
+          <div className="eyebrow">Revanoq-työtila</div>
+          <h1>Kirjaudu sisään</h1>
+          <p className="muted">
+            Käytä työosoitettasi päästäksesi rahtilaskujen auditointiin.
+          </p>
         </div>
 
         {params.error && (
           <div className="notice error">
-            Authentication failed. Check your details.
+            Kirjautuminen epäonnistui. Tarkista sähköposti ja salasana.
           </div>
         )}
 
         {params.message === "check-email" && (
           <div className="notice">
-            Account created. Check your email if confirmation is enabled.
+            Tili luotiin. Tarkista sähköpostisi, jos sähköpostivahvistus on käytössä.
           </div>
         )}
 
         <label>
-          Email
+          Sähköposti
           <input name="email" type="email" autoComplete="email" required />
         </label>
 
         <label>
-          Password
+          Salasana
           <input
             name="password"
             type="password"
@@ -45,11 +47,11 @@ export default async function LoginPage({
         </label>
 
         <button className="button primary" formAction={login}>
-          Sign in
+          Kirjaudu sisään
         </button>
 
         <button className="button" formAction={signup}>
-          Create account
+          Luo tili
         </button>
       </form>
     </main>
