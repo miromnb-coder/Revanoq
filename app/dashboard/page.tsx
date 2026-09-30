@@ -4,14 +4,14 @@ import { logout } from "@/app/login/actions";
 import { createWorkspace } from "./actions";
 
 const navItems = [
-  ["▦", "Overview"],
-  ["▤", "Invoices"],
-  ["!", "Findings"],
-  ["≡", "Contracts"],
-  ["C", "Carriers"],
-  ["S", "Shipments"],
-  ["D", "Disputes"],
-  ["R", "Reports"],
+  ["▦", "Yleiskuva"],
+  ["▤", "Laskut"],
+  ["!", "Löydökset"],
+  ["≡", "Sopimukset"],
+  ["C", "Kuljetusyhtiöt"],
+  ["S", "Lähetykset"],
+  ["D", "Reklamaatiot"],
+  ["R", "Raportit"],
 ];
 
 export default async function DashboardPage({
@@ -41,40 +41,40 @@ export default async function DashboardPage({
           <nav className="nav">
             <div className="brand">REVANOQ</div>
             <form action={logout}>
-              <button className="button" type="submit">Sign out</button>
+              <button className="button" type="submit">Kirjaudu ulos</button>
             </form>
           </nav>
 
           <form className="form" action={createWorkspace}>
             <div>
-              <div className="eyebrow">Workspace setup</div>
-              <h1>Create your workspace</h1>
+              <div className="eyebrow">Työtilan käyttöönotto</div>
+              <h1>Luo työtila</h1>
               <p className="muted">
-                Start with one company workspace for carriers, contracts, shipments,
-                invoices and audit findings.
+                Aloita yhdellä yrityksen työtilalla. Kuljetusyhtiöt, sopimukset,
+                lähetykset, laskut ja auditointilöydökset pysyvät sen sisällä.
               </p>
             </div>
 
             {params.error && (
               <div className="notice error">
-                Workspace creation failed. Try a different company name.
+                Työtilan luominen epäonnistui. Kokeile toista nimeä.
               </div>
             )}
 
             <label>
-              Company or workspace name
+              Yrityksen tai työtilan nimi
               <input
                 name="name"
                 type="text"
                 minLength={2}
                 maxLength={120}
-                placeholder="Example Manufacturing Oy"
+                placeholder="Esimerkki Teollisuus Oy"
                 required
               />
             </label>
 
             <button className="button primary" type="submit">
-              Create workspace
+              Luo työtila
             </button>
           </form>
         </div>
@@ -95,7 +95,7 @@ export default async function DashboardPage({
     0,
   );
 
-  const recoveredFormatted = new Intl.NumberFormat("en-FI", {
+  const recoveredFormatted = new Intl.NumberFormat("fi-FI", {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: 0,
@@ -116,69 +116,69 @@ export default async function DashboardPage({
         </nav>
 
         <div className="sidebar-footer">
-          Workspace
+          Työtila
           <strong>{workspace.name}</strong>
         </div>
       </aside>
 
       <main className="main">
         <div className="topbar">
-          <div className="search">⌕ &nbsp; Search invoices, carriers, findings…</div>
+          <div className="search">⌕ &nbsp; Hae laskuja, kuljetusyhtiöitä tai löydöksiä…</div>
           <form action={logout}>
-            <button className="button" type="submit">Sign out</button>
+            <button className="button" type="submit">Kirjaudu ulos</button>
           </form>
         </div>
 
         <header className="header">
           <div>
-            <h1>Audit overview</h1>
+            <h1>Auditoinnin yleiskuva</h1>
             <p className="kicker">
-              Monitor freight invoices, discrepancies and recovered value.
+              Seuraa rahtilaskuja, poikkeamia ja takaisin saatua arvoa.
             </p>
           </div>
         </header>
 
         <section className="grid">
           <article className="card">
-            <div className="metric-label">Carriers</div>
+            <div className="metric-label">Kuljetusyhtiöt</div>
             <div className="stat">{carriersResult.count ?? 0}</div>
-            <p>Carrier profiles connected to this workspace.</p>
+            <p>Työtilaan liitetyt kuljetusyhtiöt.</p>
           </article>
 
           <article className="card">
-            <div className="metric-label">Invoices audited</div>
+            <div className="metric-label">Auditoidut laskut</div>
             <div className="stat">{invoicesResult.count ?? 0}</div>
-            <p>Freight invoices currently stored in Revanoq.</p>
+            <p>Revanoqiin tallennetut rahtilaskut.</p>
           </article>
 
           <article className="card">
-            <div className="metric-label">Open findings</div>
+            <div className="metric-label">Avoimet löydökset</div>
             <div className="stat metric-danger">{findingsResult.count ?? 0}</div>
-            <p>Discrepancies still waiting for review or dispute.</p>
+            <p>Poikkeamat, jotka odottavat tarkistusta tai reklamointia.</p>
           </article>
 
           <article className="card">
-            <div className="metric-label">Recovered</div>
+            <div className="metric-label">Takaisin saatu</div>
             <div className="stat metric-success">{recoveredFormatted}</div>
-            <p>Credited value from resolved carrier disputes.</p>
+            <p>Hyvitetty arvo ratkaistuista kuljetuslaskujen reklamaatioista.</p>
           </article>
         </section>
 
         <section className="panel-grid">
           <article className="panel">
-            <h2>Savings trend</h2>
-            <p className="muted">Potential and recovered freight savings over time.</p>
+            <h2>Säästökehitys</h2>
+            <p className="muted">Mahdolliset ja toteutuneet rahtisäästöt ajan myötä.</p>
             <div className="placeholder-chart" aria-hidden="true" />
           </article>
 
           <article className="panel">
-            <h2>Audit workflow</h2>
-            <p className="muted">The first operational path Revanoq will automate.</p>
+            <h2>Auditointiprosessi</h2>
+            <p className="muted">Ensimmäinen työnkulku, jonka Revanoq automatisoi.</p>
             <div className="finding-list">
-              <div className="finding-row"><strong>1. Carrier</strong><span>profile & contract</span></div>
-              <div className="finding-row"><strong>2. Invoice</strong><span>upload & extraction</span></div>
-              <div className="finding-row"><strong>3. Audit</strong><span>rates & discrepancies</span></div>
-              <div className="finding-row"><strong>4. Dispute</strong><span>evidence & recovery</span></div>
+              <div className="finding-row"><strong>1. Kuljetusyhtiö</strong><span>profiili ja sopimus</span></div>
+              <div className="finding-row"><strong>2. Lasku</strong><span>lataus ja tietojen poiminta</span></div>
+              <div className="finding-row"><strong>3. Auditointi</strong><span>hinnat ja poikkeamat</span></div>
+              <div className="finding-row"><strong>4. Reklamaatio</strong><span>perustelut ja takaisinperintä</span></div>
             </div>
           </article>
         </section>
