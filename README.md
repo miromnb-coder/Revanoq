@@ -56,3 +56,8 @@ Never commit a Supabase secret or service-role key.
 
 This foundation does not yet implement invoice parsing, contract parsing,
 rate calculation, file storage, or dispute sending. Those are the next MVP layer.
+
+
+## Deployment
+
+Production is deployed from the `main` branch through Vercel Git integration.
