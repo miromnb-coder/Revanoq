@@ -3,8 +3,9 @@ import { logout } from "@/app/login/actions";
 
 const items = [
   ["Yleiskuva", "/dashboard"],
-  ["Laskut", "/invoices"],
+  ["Laskut", "/freight-invoices"],
   ["Löydökset", "/findings"],
+  ["Reklamaatiot", "/disputes"],
   ["Sopimukset", "/contracts"],
   ["Kuljetusyhtiöt", "/carriers"],
 ];
