@@ -1,4 +1,5 @@
-import { login, signup } from "./actions";
+import Link from "next/link";
+import { login } from "./actions";
 
 export default async function LoginPage({
   searchParams,
@@ -9,7 +10,7 @@ export default async function LoginPage({
 
   return (
     <main className="shell">
-      <form className="form">
+      <form className="form" action={login}>
         <div>
           <div className="eyebrow">Revanoq-työtila</div>
           <h1>Kirjaudu sisään</h1>
@@ -18,7 +19,7 @@ export default async function LoginPage({
           </p>
         </div>
 
-        {params.error && (
+        {params.error === "login" && (
           <div className="notice error">
             Kirjautuminen epäonnistui. Tarkista sähköposti ja salasana.
           </div>
@@ -26,7 +27,13 @@ export default async function LoginPage({
 
         {params.message === "check-email" && (
           <div className="notice">
-            Tili luotiin. Tarkista sähköpostisi, jos sähköpostivahvistus on käytössä.
+            Tili luotiin. Tarkista sähköpostisi ja vahvista osoite ennen kirjautumista.
+          </div>
+        )}
+
+        {params.message === "confirmed" && (
+          <div className="notice">
+            Sähköposti vahvistettu. Voit nyt kirjautua sisään.
           </div>
         )}
 
@@ -46,13 +53,13 @@ export default async function LoginPage({
           />
         </label>
 
-        <button className="button primary" formAction={login}>
+        <button className="button primary" type="submit">
           Kirjaudu sisään
         </button>
 
-        <button className="button" formAction={signup}>
-          Luo tili
-        </button>
+        <Link className="button" href="/register">
+          Luo uusi tili
+        </Link>
       </form>
     </main>
   );
