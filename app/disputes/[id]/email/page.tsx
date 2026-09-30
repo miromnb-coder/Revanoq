@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { getCurrentWorkspace } from "@/lib/current-workspace";
+import { PrintButton } from "@/components/print-button";
 
 export default async function DisputeEmailPage({
   params,
@@ -64,6 +65,7 @@ export default async function DisputeEmailPage({
 
         <div className="header-actions">
           <Link className="button" href={"/disputes/" + id}>Takaisin</Link>
+          <PrintButton />
           <a className="button primary" href={emailHref}>Avaa sähköpostissa</a>
         </div>
       </article>
