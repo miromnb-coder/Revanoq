@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -19,13 +19,23 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  const { error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: "https://revanoq.vercel.app/login?message=confirmed",
+    },
+  });
 
   if (error) {
-    redirect("/login?error=signup");
+    redirect("/register?error=signup");
+  }
+
+  if (data.session) {
+    redirect("/dashboard");
   }
 
   redirect("/login?message=check-email");
