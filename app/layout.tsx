@@ -3,14 +3,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Revanoq",
-  description: "Freight cost intelligence for modern supply chains.",
+  description: "Rahtikulujen auditointi ja kustannuspoikkeamien tunnistus.",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="fi">
       <body>{children}</body>
     </html>
   );
