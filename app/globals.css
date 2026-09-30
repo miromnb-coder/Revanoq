@@ -1621,3 +1621,56 @@ select:focus,
     border-top: 1px solid #e4e6e2;
   }
 }
+
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  .sidebar,
+  .topbar,
+  .breadcrumbs,
+  .header,
+  .email-preview .header-actions {
+    display: none !important;
+  }
+
+  .app {
+    display: block !important;
+    background: #fff !important;
+  }
+
+  .main {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .email-preview {
+    max-width: none !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    padding: 0 !important;
+  }
+
+  .email-preview::before {
+    content: "REVANOQ · RAHTILASKUN REKLAMAATIO";
+    display: block;
+    margin-bottom: 36px;
+    color: #171b18;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+  }
+
+  .email-body {
+    background: #fff !important;
+    border: 0 !important;
+    padding: 22px 0 !important;
+    font-size: 12pt !important;
+  }
+}
