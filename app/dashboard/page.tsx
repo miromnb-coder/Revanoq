@@ -3,6 +3,17 @@ import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/login/actions";
 import { createWorkspace } from "./actions";
 
+const navItems = [
+  ["▦", "Overview"],
+  ["▤", "Invoices"],
+  ["!", "Findings"],
+  ["≡", "Contracts"],
+  ["C", "Carriers"],
+  ["S", "Shipments"],
+  ["D", "Disputes"],
+  ["R", "Reports"],
+];
+
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -25,135 +36,153 @@ export default async function DashboardPage({
 
   if (!workspace) {
     return (
-      <main className="shell">
-        <header className="header">
-          <div>
-            <div className="eyebrow">Revanoq</div>
-            <h1>Create your workspace</h1>
-            <p className="muted">
-              Start with one company workspace. Carriers, contracts, shipments,
-              invoices and audit findings will be isolated inside it.
-            </p>
-          </div>
+      <main className="site-shell">
+        <div className="shell">
+          <nav className="nav">
+            <div className="brand">REVANOQ</div>
+            <form action={logout}>
+              <button className="button" type="submit">Sign out</button>
+            </form>
+          </nav>
 
-          <form action={logout}>
-            <button className="button" type="submit">
-              Sign out
+          <form className="form" action={createWorkspace}>
+            <div>
+              <div className="eyebrow">Workspace setup</div>
+              <h1>Create your workspace</h1>
+              <p className="muted">
+                Start with one company workspace for carriers, contracts, shipments,
+                invoices and audit findings.
+              </p>
+            </div>
+
+            {params.error && (
+              <div className="notice error">
+                Workspace creation failed. Try a different company name.
+              </div>
+            )}
+
+            <label>
+              Company or workspace name
+              <input
+                name="name"
+                type="text"
+                minLength={2}
+                maxLength={120}
+                placeholder="Example Manufacturing Oy"
+                required
+              />
+            </label>
+
+            <button className="button primary" type="submit">
+              Create workspace
             </button>
           </form>
-        </header>
-
-        <form className="form" action={createWorkspace}>
-          {params.error && (
-            <div className="notice error">
-              Workspace creation failed. Try a different company name.
-            </div>
-          )}
-
-          <label>
-            Company or workspace name
-            <input
-              name="name"
-              type="text"
-              minLength={2}
-              maxLength={120}
-              placeholder="Example Manufacturing Oy"
-              required
-            />
-          </label>
-
-          <button className="button primary" type="submit">
-            Create workspace
-          </button>
-        </form>
+        </div>
       </main>
     );
   }
 
-  const [
-    carriersResult,
-    invoicesResult,
-    findingsResult,
-    recoveredResult,
-  ] = await Promise.all([
-    supabase
-      .from("carriers")
-      .select("*", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
-    supabase
-      .from("invoices")
-      .select("*", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
-    supabase
-      .from("audit_findings")
-      .select("*", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id)
-      .eq("status", "open"),
-    supabase
-      .from("disputes")
-      .select("disputed_amount")
-      .eq("workspace_id", workspace.id)
-      .eq("status", "credited"),
-  ]);
+  const [carriersResult, invoicesResult, findingsResult, recoveredResult] =
+    await Promise.all([
+      supabase.from("carriers").select("*", { count: "exact", head: true }).eq("workspace_id", workspace.id),
+      supabase.from("invoices").select("*", { count: "exact", head: true }).eq("workspace_id", workspace.id),
+      supabase.from("audit_findings").select("*", { count: "exact", head: true }).eq("workspace_id", workspace.id).eq("status", "open"),
+      supabase.from("disputes").select("disputed_amount").eq("workspace_id", workspace.id).eq("status", "credited"),
+    ]);
 
   const recovered = (recoveredResult.data ?? []).reduce(
     (sum, dispute) => sum + Number(dispute.disputed_amount ?? 0),
     0,
   );
 
+  const recoveredFormatted = new Intl.NumberFormat("en-FI", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(recovered);
+
   return (
-    <main className="shell">
-      <header className="header">
-        <div>
-          <div className="eyebrow">Revanoq · {workspace.name}</div>
-          <h1>Audit workspace</h1>
-          <p className="muted">
-            Freight invoice control from contract rates to evidence-backed disputes.
-          </p>
+    <div className="app">
+      <aside className="sidebar">
+        <div className="brand">REVANOQ</div>
+
+        <nav className="sidebar-nav">
+          {navItems.map(([icon, label], index) => (
+            <div className={`sidebar-item${index === 0 ? " active" : ""}`} key={label}>
+              <span className="sidebar-icon">{icon}</span>
+              <span>{label}</span>
+            </div>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          Workspace
+          <strong>{workspace.name}</strong>
+        </div>
+      </aside>
+
+      <main className="main">
+        <div className="topbar">
+          <div className="search">⌕ &nbsp; Search invoices, carriers, findings…</div>
+          <form action={logout}>
+            <button className="button" type="submit">Sign out</button>
+          </form>
         </div>
 
-        <form action={logout}>
-          <button className="button" type="submit">
-            Sign out
-          </button>
-        </form>
-      </header>
-
-      <section className="grid">
-        <article className="card">
-          <div className="eyebrow">01</div>
-          <h3>Carriers</h3>
-          <p>Carrier profiles and the contracts linked to them.</p>
-          <div className="stat">{carriersResult.count ?? 0}</div>
-        </article>
-
-        <article className="card">
-          <div className="eyebrow">02</div>
-          <h3>Invoices</h3>
-          <p>Freight invoices uploaded into the workspace.</p>
-          <div className="stat">{invoicesResult.count ?? 0}</div>
-        </article>
-
-        <article className="card">
-          <div className="eyebrow">03</div>
-          <h3>Open findings</h3>
-          <p>Audit discrepancies still waiting for review.</p>
-          <div className="stat">{findingsResult.count ?? 0}</div>
-        </article>
-
-        <article className="card">
-          <div className="eyebrow">04</div>
-          <h3>Recovered</h3>
-          <p>Credited value from resolved carrier disputes.</p>
-          <div className="stat">
-            {new Intl.NumberFormat("en-FI", {
-              style: "currency",
-              currency: "EUR",
-              maximumFractionDigits: 0,
-            }).format(recovered)}
+        <header className="header">
+          <div>
+            <h1>Audit overview</h1>
+            <p className="kicker">
+              Monitor freight invoices, discrepancies and recovered value.
+            </p>
           </div>
-        </article>
-      </section>
-    </main>
+        </header>
+
+        <section className="grid">
+          <article className="card">
+            <div className="metric-label">Carriers</div>
+            <div className="stat">{carriersResult.count ?? 0}</div>
+            <p>Carrier profiles connected to this workspace.</p>
+          </article>
+
+          <article className="card">
+            <div className="metric-label">Invoices audited</div>
+            <div className="stat">{invoicesResult.count ?? 0}</div>
+            <p>Freight invoices currently stored in Revanoq.</p>
+          </article>
+
+          <article className="card">
+            <div className="metric-label">Open findings</div>
+            <div className="stat metric-danger">{findingsResult.count ?? 0}</div>
+            <p>Discrepancies still waiting for review or dispute.</p>
+          </article>
+
+          <article className="card">
+            <div className="metric-label">Recovered</div>
+            <div className="stat metric-success">{recoveredFormatted}</div>
+            <p>Credited value from resolved carrier disputes.</p>
+          </article>
+        </section>
+
+        <section className="panel-grid">
+          <article className="panel">
+            <h2>Savings trend</h2>
+            <p className="muted">Potential and recovered freight savings over time.</p>
+            <div className="placeholder-chart" aria-hidden="true" />
+          </article>
+
+          <article className="panel">
+            <h2>Audit workflow</h2>
+            <p className="muted">The first operational path Revanoq will automate.</p>
+            <div className="finding-list">
+              <div className="finding-row"><strong>1. Carrier</strong><span>profile & contract</span></div>
+              <div className="finding-row"><strong>2. Invoice</strong><span>upload & extraction</span></div>
+              <div className="finding-row"><strong>3. Audit</strong><span>rates & discrepancies</span></div>
+              <div className="finding-row"><strong>4. Dispute</strong><span>evidence & recovery</span></div>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
   );
 }
