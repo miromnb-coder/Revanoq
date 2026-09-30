@@ -5,18 +5,18 @@ export default function HomePage() {
     <main className="shell">
       <nav className="nav">
         <div className="brand">REVANOQ</div>
-        <Link className="button" href="/login">Sign in</Link>
+        <Link className="button" href="/login">Kirjaudu sisään</Link>
       </nav>
 
       <section className="hero">
-        <div className="eyebrow">Freight cost intelligence</div>
-        <h1>Find what your freight costs are hiding.</h1>
+        <div className="eyebrow">Rahtikulujen älykäs valvonta</div>
+        <h1>Löydä se, mitä rahtikulusi piilottavat.</h1>
         <p>
-          Revanoq compares carrier invoices against shipments, contracts and rate rules,
-          then turns discrepancies into evidence-backed audit findings.
+          Revanoq vertaa kuljetuslaskuja lähetyksiin, sopimuksiin ja hinnastoihin
+          sekä muuttaa poikkeamat selkeästi perustelluiksi auditointilöydöksiksi.
         </p>
         <div className="actions">
-          <Link className="button primary" href="/login">Open workspace</Link>
+          <Link className="button primary" href="/login">Avaa työtila</Link>
         </div>
       </section>
     </main>
