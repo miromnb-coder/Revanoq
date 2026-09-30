@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentWorkspace } from "@/lib/current-workspace";
 import { parseInvoiceCsv } from "@/lib/csv";
-import { extractPdfInvoice } from "@/lib/pdf-invoice";
+import { extractPdfInvoiceLite } from "@/lib/pdf-invoice-lite";
 
 function numberValue(value: FormDataEntryValue | null) {
   if (value == null || String(value).trim() === "") return null;
@@ -24,11 +24,11 @@ export async function uploadInvoiceV2(formData: FormData) {
   const { supabase, workspace, userId } = await getCurrentWorkspace();
   const file = formData.get("file");
 
-  if (!(file instanceof File) || file.size === 0) redirect("/invoices?error=missing");
+  if (!(file instanceof File) || file.size === 0) redirect("/freight-invoices?error=missing");
 
   const ext = file.name.split(".").pop()?.toLowerCase();
-  if (!ext || !["pdf", "csv"].includes(ext)) redirect("/invoices?error=filetype");
-  if (file.size > 4_000_000) redirect("/invoices?error=filesize");
+  if (!ext || !["pdf", "csv"].includes(ext)) redirect("/freight-invoices?error=filetype");
+  if (file.size > 4_000_000) redirect("/freight-invoices?error=filesize");
 
   const providedCarrier = String(formData.get("carrier_id") ?? "");
   const providedNumber = String(formData.get("invoice_number") ?? "").trim();
@@ -63,14 +63,14 @@ export async function uploadInvoiceV2(formData: FormData) {
   }> = [];
 
   if (carrierId && !(carriers ?? []).some((carrier) => carrier.id === carrierId)) {
-    redirect("/invoices?error=carrier");
+    redirect("/freight-invoices?error=carrier");
   }
 
   if (ext === "csv") {
     lines = parseInvoiceCsv(await file.text());
-    if (!lines.length) redirect("/invoices?error=csv");
-    if (!carrierId) redirect("/invoices?error=carrier");
-    if (!invoiceNumber) redirect("/invoices?error=invoice-number");
+    if (!lines.length) redirect("/freight-invoices?error=csv");
+    if (!carrierId) redirect("/freight-invoices?error=carrier");
+    if (!invoiceNumber) redirect("/freight-invoices?error=invoice-number");
     totalAmount = totalAmount ?? lines.reduce((sum, line) => sum + line.amount, 0);
     subtotal = totalAmount;
     currency = currency || "EUR";
@@ -78,9 +78,9 @@ export async function uploadInvoiceV2(formData: FormData) {
   } else {
     let extracted;
     try {
-      extracted = await extractPdfInvoice(buffer);
+      extracted = await extractPdfInvoiceLite(buffer);
     } catch {
-      redirect("/invoices?error=pdf-read");
+      redirect("/freight-invoices?error=pdf-read");
     }
 
     invoiceNumber = invoiceNumber || extracted.invoice_number;
@@ -134,17 +134,17 @@ export async function uploadInvoiceV2(formData: FormData) {
     };
   }
 
-  if (!carrierId) redirect("/invoices?error=carrier-match");
-  if (!invoiceNumber) redirect("/invoices?error=invoice-number");
-  if (!currency || currency.length !== 3) redirect("/invoices?error=currency");
-  if (totalAmount == null) redirect("/invoices?error=total");
+  if (!carrierId) redirect("/freight-invoices?error=carrier-match");
+  if (!invoiceNumber) redirect("/freight-invoices?error=invoice-number");
+  if (!currency || currency.length !== 3) redirect("/freight-invoices?error=currency");
+  if (totalAmount == null) redirect("/freight-invoices?error=total");
 
   const filePath = workspace.id + "/" + crypto.randomUUID() + "-" + safeName(file.name);
   const { error: storageError } = await supabase.storage.from("invoices").upload(filePath, buffer, {
     contentType: file.type || (ext === "pdf" ? "application/pdf" : "text/csv"),
     upsert: false,
   });
-  if (storageError) redirect("/invoices?error=upload");
+  if (storageError) redirect("/freight-invoices?error=upload");
 
   const { data: invoice, error: invoiceError } = await supabase.from("invoices").insert({
     workspace_id: workspace.id,
@@ -164,7 +164,7 @@ export async function uploadInvoiceV2(formData: FormData) {
 
   if (invoiceError || !invoice) {
     await supabase.storage.from("invoices").remove([filePath]);
-    redirect("/invoices?error=create");
+    redirect("/freight-invoices?error=create");
   }
 
   const { error: lineError } = await supabase.from("invoice_lines").insert(
@@ -184,7 +184,7 @@ export async function uploadInvoiceV2(formData: FormData) {
   if (lineError) {
     await supabase.from("invoices").delete().eq("id", invoice.id);
     await supabase.storage.from("invoices").remove([filePath]);
-    redirect("/invoices?error=lines");
+    redirect("/freight-invoices?error=lines");
   }
 
   revalidatePath("/invoices");
