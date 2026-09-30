@@ -93,13 +93,13 @@ export default async function DashboardPage({
       .eq("status", "open"),
     supabase
       .from("disputes")
-      .select("disputed_amount")
+      .select("credited_amount")
       .eq("workspace_id", workspace.id)
       .eq("status", "credited"),
   ]);
 
   const recovered = (recoveredResult.data ?? []).reduce(
-    (sum, dispute) => sum + Number(dispute.disputed_amount ?? 0),
+    (sum, dispute) => sum + Number(dispute.credited_amount ?? 0),
     0,
   );
 
