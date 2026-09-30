@@ -28,7 +28,7 @@ export default async function InvoiceDetailPage({
 
   const { data: invoice } = await supabase
     .from("invoices")
-    .select("id,carrier_id,invoice_number,invoice_date,due_date,currency,subtotal,tax_amount,total_amount,source_file_path,status,extraction_data,created_at")
+    .select("id,carrier_id,invoice_number,invoice_date,due_date,currency,subtotal,tax_amount,total_amount,source_file_path,status,created_at")
     .eq("workspace_id", workspace.id)
     .eq("id", id)
     .maybeSingle();
@@ -44,7 +44,7 @@ export default async function InvoiceDetailPage({
       .maybeSingle(),
     supabase
       .from("invoice_lines")
-      .select("id,line_number,description,charge_code,quantity,unit_price,amount,raw_data")
+      .select("id,line_number,description,charge_code,quantity,unit_price,amount")
       .eq("workspace_id", workspace.id)
       .eq("invoice_id", invoice.id)
       .order("line_number"),
@@ -75,7 +75,6 @@ export default async function InvoiceDetailPage({
   }
 
   const summary = (latestRun?.summary ?? {}) as Record<string, unknown>;
-  const extraction = (invoice.extraction_data ?? {}) as Record<string, unknown>;
   const totalVariance = Number(summary.total_variance ?? 0);
 
   return (
@@ -151,27 +150,6 @@ export default async function InvoiceDetailPage({
         <div className="notice warning-notice">{summary.note}</div>
       )}
 
-      {extraction.extraction_method && (
-        <div className="extraction-strip">
-          <div>
-            <span className="metric-label">Poimintatapa</span>
-            <strong>{extraction.extraction_method === "pdf_text" ? "PDF · automaattinen" : "CSV · rakenteinen"}</strong>
-          </div>
-          <div>
-            <span className="metric-label">Poimitut rivit</span>
-            <strong>{String(extraction.extracted_line_count ?? lines?.length ?? 0)}</strong>
-          </div>
-          <div>
-            <span className="metric-label">Sivuja</span>
-            <strong>{String(extraction.page_count ?? "—")}</strong>
-          </div>
-          <div>
-            <span className="metric-label">Kuljetusyhtiö</span>
-            <strong>{extraction.carrier_auto_matched ? "Tunnistettu automaattisesti" : "Valittu / vahvistettu"}</strong>
-          </div>
-        </div>
-      )}
-
       <section className="panel invoice-lines-panel">
         <div className="section-heading">
           <div>
@@ -184,7 +162,7 @@ export default async function InvoiceDetailPage({
           <div className="data-row data-head">
             <span>Rivi</span>
             <span>Veloituskoodi</span>
-            <span>Selite / lähde</span>
+            <span>Selite</span>
             <span>Määrä</span>
             <span>Yksikköhinta</span>
             <span>Summa</span>
@@ -194,19 +172,7 @@ export default async function InvoiceDetailPage({
             <div className="data-row" key={line.id}>
               <span>{line.line_number ?? "—"}</span>
               <span><code>{line.charge_code || "—"}</code></span>
-              <span>
-                {line.description || "—"}
-                {(() => {
-                  const source = (line.raw_data ?? {}) as Record<string, unknown>;
-                  if (source.source !== "pdf_text") return null;
-                  const confidence = Number(source.extraction_confidence ?? 0);
-                  return (
-                    <small className="source-evidence">
-                      PDF-lähde{source.page ? ` · s. ${source.page}` : ""}{confidence ? ` · ${Math.round(confidence * 100)} %` : ""}
-                    </small>
-                  );
-                })()}
-              </span>
+              <span>{line.description || "—"}</span>
               <span>{line.quantity ?? "—"}</span>
               <span>{money(line.unit_price, invoice.currency)}</span>
               <span><strong>{money(line.amount, invoice.currency)}</strong></span>
