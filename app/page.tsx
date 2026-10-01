@@ -67,6 +67,13 @@ export default function HomePage() {
               <span>Sopimuspohjainen tarkistus</span>
               <span>Reklamaatiot valmiiksi</span>
             </div>
+
+            <div className="trust-row">
+              <span>Rakennettu valmistajille</span>
+              <span>Maahantuojille</span>
+              <span>Tukkukaupalle</span>
+              <span>Logistiikka- ja taloustiimeille</span>
+            </div>
           </div>
 
           <div className="hero-product" aria-label="Revanoq-tuotteen esikatselu">
@@ -147,6 +154,18 @@ export default function HomePage() {
             Talous, hankinta ja logistiikka näkevät samalla kertaa mitä laskutettiin,
             mitä olisi pitänyt laskuttaa ja mitä rahaa on saatu oikeasti takaisin.
           </p>
+        </section>
+
+        <section className="process-strip">
+          <div><span>01</span><strong>Lasku sisään</strong><small>PDF tai CSV</small></div>
+          <i />
+          <div><span>02</span><strong>Auditointi</strong><small>Sopimus ja hinnasto</small></div>
+          <i />
+          <div><span>03</span><strong>Löydös</strong><small>Peruste + confidence</small></div>
+          <i />
+          <div><span>04</span><strong>Reklamaatio</strong><small>Valmis lähetettäväksi</small></div>
+          <i />
+          <div><span>05</span><strong>Hyvitys</strong><small>Todellinen säästö</small></div>
         </section>
       </div>
     </main>
