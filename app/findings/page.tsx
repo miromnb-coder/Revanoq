@@ -59,8 +59,9 @@ export default async function FindingsPage() {
 
   return (
     <AppShell workspaceName={workspace.name} active="/findings">
-      <header className="header">
+      <header className="header operational-header">
         <div>
+          <div className="page-label">Auditointijono</div>
           <h1>Löydökset</h1>
           <p className="kicker">
             Tarkista auditointipoikkeamat ja hyväksy vain perustellut reklamaatiot.
@@ -68,7 +69,7 @@ export default async function FindingsPage() {
         </div>
       </header>
 
-      <section className="grid compact-grid">
+      <section className="operational-metrics findings-metrics">
         <article className="card">
           <div className="metric-label">Avoimet löydökset</div>
           <div className="stat metric-danger">{openCount}</div>
@@ -87,7 +88,7 @@ export default async function FindingsPage() {
         </article>
       </section>
 
-      <article className="panel findings-panel">
+      <article className="operational-table-shell findings-panel">
         <div className="section-heading">
           <div>
             <h2>Auditointilöydökset</h2>
