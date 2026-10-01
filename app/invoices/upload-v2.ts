@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentWorkspace } from "@/lib/current-workspace";
 import { parseInvoiceCsv } from "@/lib/csv";
-import { extractPdfInvoice } from "@/lib/pdf-invoice";
+import { extractPdfInvoiceLite } from "@/lib/pdf-invoice-lite";
 
 function numberValue(value: FormDataEntryValue | null) {
   if (value == null || String(value).trim() === "") return null;
@@ -78,7 +78,7 @@ export async function uploadInvoiceV2(formData: FormData) {
   } else {
     let extracted;
     try {
-      extracted = await extractPdfInvoice(buffer);
+      extracted = await extractPdfInvoiceLite(buffer);
     } catch {
       redirect("/freight-invoices?error=pdf-read");
     }
