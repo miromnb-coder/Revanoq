@@ -4359,10 +4359,10 @@ body {
   content: "";
   position: absolute;
   z-index: 2;
-  top: -138px;
+  top: -112px;
   left: 0;
   width: 100%;
-  height: 184px;
+  height: 150px;
   pointer-events: none;
   background:
     radial-gradient(circle at 12% 72%, rgba(43, 72, 73, .26), transparent 24rem),
@@ -4524,8 +4524,8 @@ body {
   }
 
   .rq-landing-lower::before {
-    top: -104px;
-    height: 142px;
+    top: -86px;
+    height: 118px;
   }
 
   .rq-landing-lower-inner {
