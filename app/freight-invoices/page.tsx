@@ -42,26 +42,109 @@ export default async function FreightInvoicesPage({
   ]);
 
   const names = new Map((carriers ?? []).map((carrier) => [carrier.id, carrier.name]));
+  const invoiceCount = invoices?.length ?? 0;
+  const auditedTotal = (invoices ?? []).reduce((sum, invoice) => sum + Number(invoice.total_amount ?? 0), 0);
+  const pdfCount = (invoices ?? []).filter((invoice) => {
+    const extraction = (invoice.extraction_data ?? {}) as Record<string, unknown>;
+    return extraction.extraction_method === "pdf_text";
+  }).length;
 
   return (
     <AppShell workspaceName={workspace.name} active="/freight-invoices">
-      <header className="header">
+      <header className="header operational-header">
         <div>
+          <div className="page-label">Kuljetuslaskut</div>
           <h1>Laskut</h1>
           <p className="kicker">
-            Tuo PDF tai CSV. Revanoq poimii PDF:stä laskutiedot ja rivit automaattisesti, kun tiedosto sisältää koneellisesti luettavaa tekstiä.
+            Tuo, tarkista ja auditoi kaikki kuljetuslaskut yhdessä näkymässä.
           </p>
         </div>
+
+        <a className="button primary" href="#upload">+ Lataa lasku</a>
       </header>
 
-      <section className="content-grid">
-        <article className="panel">
-          <h2>Lataa lasku</h2>
-          <p className="muted">
-            PDF:n kentät ovat valinnaisia: täytä ne vain, jos haluat ohittaa automaattisen tunnistuksen.
-          </p>
+      <section className="operational-metrics">
+        <div><span className="metric-label">Laskuja</span><strong>{invoiceCount}</strong><small>Työtilassa yhteensä</small></div>
+        <div><span className="metric-label">Laskutettu arvo</span><strong>{money(auditedTotal, "EUR")}</strong><small>Tuodut laskut</small></div>
+        <div><span className="metric-label">PDF-poiminta</span><strong>{pdfCount}</strong><small>Automaattisesti poimittu</small></div>
+      </section>
 
-          <form className="stack-form" action={uploadInvoiceV2}>
+      <article className="operational-table-shell">
+        <div className="section-heading">
+          <div>
+            <span className="panel-kicker">Laskurekisteri</span>
+            <h2>Tuodut laskut</h2>
+          </div>
+          <span className="record-count">{invoiceCount} laskua</span>
+        </div>
+
+        <div className="invoice-register">
+          <div className="invoice-register-row invoice-register-head">
+            <span>Lasku</span>
+            <span>Kuljetusyhtiö</span>
+            <span>Päivä</span>
+            <span>Tuontitapa</span>
+            <span>Summa</span>
+            <span>Tila</span>
+          </div>
+
+          {(invoices ?? []).map((invoice) => {
+            const extraction = (invoice.extraction_data ?? {}) as Record<string, unknown>;
+            const method =
+              extraction.extraction_method === "pdf_text"
+                ? "PDF · automaattinen"
+                : extraction.extraction_method === "structured_csv"
+                  ? "CSV · rakenteinen"
+                  : "Tuotu";
+
+            return (
+              <Link className="invoice-register-row" href={"/invoices/" + invoice.id} key={invoice.id}>
+                <span><strong>{invoice.invoice_number}</strong></span>
+                <span>{names.get(invoice.carrier_id) || "Kuljetusyhtiö"}</span>
+                <span>{invoice.invoice_date || "—"}</span>
+                <span>{method}</span>
+                <span><strong>{money(invoice.total_amount, invoice.currency)}</strong></span>
+                <span><span className="status">{invoice.status}</span></span>
+              </Link>
+            );
+          })}
+
+          {!invoices?.length && (
+            <div className="operational-empty">
+              <strong>Ei laskuja vielä</strong>
+              <p>Lataa ensimmäinen PDF- tai CSV-lasku aloittaaksesi auditoinnin.</p>
+              <a href="#upload">Lataa ensimmäinen lasku →</a>
+            </div>
+          )}
+        </div>
+      </article>
+
+      <details className="upload-drawer" id="upload" open={Boolean(params.error)}>
+        <summary>
+          <span>
+            <small>Uusi lasku</small>
+            <strong>Lataa PDF tai CSV</strong>
+          </span>
+          <b>+</b>
+        </summary>
+
+        <div className="upload-drawer-body">
+          <div className="upload-drawer-copy">
+            <span className="panel-kicker">Automaattinen poiminta</span>
+            <h2>Lasku sisään. Data ulos.</h2>
+            <p>
+              PDF:stä Revanoq poimii laskunumeron, päivät, valuutan, summat ja laskurivejä.
+              CSV käsitellään rakenteisena datana. Kentät voi myös vahvistaa käsin.
+            </p>
+            <div className="csv-guide">
+              <strong>PDF-evidenssi</strong>
+              <span>Poimituille riveille tallennetaan lähdeteksti ja confidence.</span>
+              <strong>CSV</strong>
+              <code>line_number, description, charge_code, quantity, unit_price, amount</code>
+            </div>
+          </div>
+
+          <form className="stack-form upload-form" action={uploadInvoiceV2}>
             {params.error && (
               <div className="notice error">{errors[params.error] || "Laskun käsittely epäonnistui."}</div>
             )}
@@ -98,54 +181,24 @@ export default async function FreightInvoicesPage({
               </label>
             </div>
 
-            <label>
-              PDF- tai CSV-tiedosto
+            <label className="file-drop">
+              <span>PDF- tai CSV-tiedosto</span>
               <input name="file" type="file" accept=".pdf,.csv,application/pdf,text/csv" required />
+              <small>Enintään 4 Mt</small>
             </label>
-
-            <div className="csv-guide">
-              <strong>PDF-evidenssi</strong>
-              <span>Poimituille riveille tallennetaan alkuperäinen tekstirivi, sivunumero silloin kun se voidaan kohdistaa ja poiminnan confidence.</span>
-              <strong>CSV</strong>
-              <code>line_number, description, charge_code, quantity, unit_price, amount</code>
-            </div>
 
             <button className="button primary" type="submit">Tallenna ja poimi tiedot</button>
           </form>
-        </article>
-
-        <article className="panel">
-          <h2>Tuodut laskut</h2>
-          <p className="muted">{invoices?.length ?? 0} laskua</p>
-
-          <div className="list">
-            {(invoices ?? []).map((invoice) => {
-              const extraction = (invoice.extraction_data ?? {}) as Record<string, unknown>;
-              const method = extraction.extraction_method === "pdf_text" ? "PDF · automaattinen poiminta" :
-                extraction.extraction_method === "structured_csv" ? "CSV · rakenteinen" : "Tuotu";
-
-              return (
-                <Link className="list-item" href={"/invoices/" + invoice.id} key={invoice.id}>
-                  <div>
-                    <strong>{invoice.invoice_number}</strong>
-                    <span>{names.get(invoice.carrier_id) || "Kuljetusyhtiö"} · {invoice.invoice_date || "ei päivää"} · {method}</span>
-                  </div>
-                  <div className="list-amount">
-                    <strong>{money(invoice.total_amount, invoice.currency)}</strong>
-                    <span className="status">{invoice.status}</span>
-                  </div>
-                </Link>
-              );
-            })}
-
-            {!invoices?.length && <div className="empty-state">Ei laskuja vielä.</div>}
-          </div>
-        </article>
-      </section>
+        </div>
+      </details>
     </AppShell>
   );
 }
 
 function money(value: number | string, currency: string) {
-  return new Intl.NumberFormat("fi-FI", { style: "currency", currency }).format(Number(value));
+  return new Intl.NumberFormat("fi-FI", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(Number(value));
 }
