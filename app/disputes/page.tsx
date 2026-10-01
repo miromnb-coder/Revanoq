@@ -23,14 +23,15 @@ export default async function DisputesPage() {
 
   return (
     <AppShell workspaceName={workspace.name} active="/disputes">
-      <header className="header">
+      <header className="header operational-header">
         <div>
+          <div className="page-label">Takaisinperintä</div>
           <h1>Reklamaatiot</h1>
           <p className="kicker">Seuraa auditointilöydöksistä syntyneitä reklamaatioita ja hyvityksiä.</p>
         </div>
       </header>
 
-      <section className="grid compact-grid">
+      <section className="operational-metrics dispute-metrics">
         <article className="card">
           <div className="metric-label">Reklamaatiot</div>
           <div className="stat">{disputes?.length ?? 0}</div>
@@ -43,7 +44,7 @@ export default async function DisputesPage() {
         </article>
       </section>
 
-      <article className="panel findings-panel">
+      <article className="operational-table-shell findings-panel">
         <h2>Kaikki reklamaatiot</h2>
         <div className="list">
           {(disputes ?? []).map((item) => (
