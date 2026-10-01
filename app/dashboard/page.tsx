@@ -118,6 +118,10 @@ export default async function DashboardPage({
     : [["rate_mismatch", 0], ["fuel_surcharge", 0], ["accessorial_fee", 0]];
   const typeTotal = Math.max(typeRanking.reduce((sum, [, value]) => sum + value, 0), 1);
   const monthBars = buildMonthBars(invoices, findings, runMap);
+  const hasInvoices = invoices.length > 0;
+  const hasFindings = findings.some((finding) => finding.status !== "dismissed");
+  const hasDisputes = disputes.length > 0;
+  const hasRecovered = recoveredAmount > 0;
 
   return (
     <AppShell workspaceName={workspace.name} active="/dashboard">
@@ -131,10 +135,10 @@ export default async function DashboardPage({
       </header>
 
       <section className="dashboard-kpis">
-        <Kpi label="Auditoitu" value={money(auditedAmount)} trend="Laskutettu arvo" spark={[28,42,35,58,49,73,65]} />
-        <Kpi label="Poikkeamat" value={money(discrepancyAmount)} trend={`${findings.filter((f) => f.status === "open").length} avointa`} spark={[18,25,22,36,32,49,44]} tone="warning" />
-        <Kpi label="Reklamoitu" value={money(claimedAmount)} trend={`${disputes.length} reklamaatiota`} spark={[12,18,17,26,23,38,42]} />
-        <Kpi label="Hyvitetty" value={money(recoveredAmount)} trend="Todellinen säästö" spark={[8,10,16,15,22,30,39]} tone="success" />
+        <Kpi label="Auditoitu" value={money(auditedAmount)} trend={hasInvoices ? "Laskutettu arvo" : "Ei laskuja vielä"} spark={[28,42,35,58,49,73,65]} active={hasInvoices} />
+        <Kpi label="Poikkeamat" value={money(discrepancyAmount)} trend={hasFindings ? `${findings.filter((f) => f.status === "open").length} avointa` : "Ei löydöksiä vielä"} spark={[18,25,22,36,32,49,44]} tone="warning" active={hasFindings} />
+        <Kpi label="Reklamoitu" value={money(claimedAmount)} trend={hasDisputes ? `${disputes.length} reklamaatiota` : "Ei reklamaatioita vielä"} spark={[12,18,17,26,23,38,42]} active={hasDisputes} />
+        <Kpi label="Hyvitetty" value={money(recoveredAmount)} trend={hasRecovered ? "Todellinen säästö" : "Ei hyvityksiä vielä"} spark={[8,10,16,15,22,30,39]} tone="success" active={hasRecovered} />
       </section>
 
       <section className="dashboard-primary">
@@ -143,44 +147,71 @@ export default async function DashboardPage({
             <div><span className="panel-kicker">Kehitys</span><h2>Auditoitu vs. poikkeamat</h2></div>
             <div className="chart-legend"><span><i className="legend-light" /> Auditoitu</span><span><i className="legend-dark" /> Poikkeamat</span></div>
           </div>
-          <div className="audit-chart">
-            {monthBars.map((month) => (
-              <div className="chart-month" key={month.label}>
-                <div className="chart-bars">
-                  <span className="chart-bar audited" style={{ height: `${month.audited}%` }} />
-                  <span className="chart-bar discrepancy" style={{ height: `${month.discrepancy}%` }} />
+          {hasInvoices ? (
+            <div className="audit-chart">
+              {monthBars.map((month) => (
+                <div className="chart-month" key={month.label}>
+                  <div className="chart-bars">
+                    <span className="chart-bar audited" style={{ height: `${month.audited}%` }} />
+                    <span className="chart-bar discrepancy" style={{ height: `${month.discrepancy}%` }} />
+                  </div>
+                  <small>{month.label}</small>
                 </div>
-                <small>{month.label}</small>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <DashboardEmpty
+              icon="chart"
+              title="Auditointidata ilmestyy tähän"
+              copy="Tuo ensimmäinen kuljetuslasku, niin Revanoq alkaa muodostaa auditointikehitystä."
+              href="/freight-invoices"
+              action="Tuo ensimmäinen lasku"
+            />
+          )}
         </article>
 
         <article className="dashboard-panel breakdown-panel">
           <div className="panel-heading"><div><span className="panel-kicker">Jakauma</span><h2>Poikkeamat tyypeittäin</h2></div></div>
-          <div className="breakdown-content">
-            <div className="donut-chart"><div><strong>{money(discrepancyAmount)}</strong><span>yhteensä</span></div></div>
-            <div className="breakdown-list">
-              {displayTypeRanking.slice(0, 5).map(([type, amount], index) => (
-                <div key={type}><span><i className={`dot dot-${index + 1}`} /> {findingNames[type] || type}</span><strong>{Math.round((amount / typeTotal) * 100)} %</strong></div>
-              ))}
+          {hasFindings ? (
+            <div className="breakdown-content">
+              <div className="donut-chart"><div><strong>{money(discrepancyAmount)}</strong><span>yhteensä</span></div></div>
+              <div className="breakdown-list">
+                {displayTypeRanking.slice(0, 5).map(([type, amount], index) => (
+                  <div key={type}><span><i className={`dot dot-${index + 1}`} /> {findingNames[type] || type}</span><strong>{Math.round((amount / typeTotal) * 100)} %</strong></div>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="zero-donut-wrap">
+              <div className="donut-chart donut-empty"><div><strong>0 €</strong><span>ei dataa</span></div></div>
+              <p>Jakauma muodostuu automaattisesti, kun auditointi löytää ensimmäisen poikkeaman.</p>
+            </div>
+          )}
         </article>
       </section>
 
       <section className="dashboard-secondary">
         <article className="dashboard-panel carrier-panel">
           <div className="panel-heading"><div><span className="panel-kicker">Kuljetusyhtiöt</span><h2>Poikkeamat kuljetusyhtiöittäin</h2></div></div>
-          <div className="carrier-ranking">
-            {(carrierRanking.length ? carrierRanking : carriers.slice(0, 5).map((carrier) => [carrier.name, 0] as [string, number])).map(([name, amount]) => (
-              <div className="carrier-rank-row" key={name}>
-                <span>{name}</span><strong>{money(amount)}</strong>
-                <div className="carrier-bar"><i style={{ width: `${Math.max((amount / carrierMax) * 100, amount ? 5 : 0)}%` }} /></div>
-              </div>
-            ))}
-            {!carriers.length && <div className="empty-state compact-empty">Ei kuljetusyhtiöitä vielä.</div>}
-          </div>
+          {carrierRanking.length ? (
+            <div className="carrier-ranking">
+              {carrierRanking.map(([name, amount]) => (
+                <div className="carrier-rank-row" key={name}>
+                  <span>{name}</span><strong>{money(amount)}</strong>
+                  <div className="carrier-bar"><i style={{ width: `${Math.max((amount / carrierMax) * 100, 5)}%` }} /></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <DashboardEmpty
+              icon="carrier"
+              title="Ei vertailtavia poikkeamia"
+              copy={carriers.length ? "Kuljetusyhtiöt näkyvät tässä, kun auditointi löytää niihin liittyviä poikkeamia." : "Lisää kuljetusyhtiö ja tuo lasku aloittaaksesi vertailun."}
+              href={carriers.length ? "/freight-invoices" : "/carriers"}
+              action={carriers.length ? "Tuo lasku" : "Lisää kuljetusyhtiö"}
+              compact
+            />
+          )}
         </article>
 
         <article className="dashboard-panel workflow-panel">
@@ -222,14 +253,53 @@ export default async function DashboardPage({
   );
 }
 
-function Kpi({ label, value, trend, spark, tone }: { label: string; value: string; trend: string; spark: number[]; tone?: "warning" | "success" }) {
+function Kpi({ label, value, trend, spark, tone, active }: { label: string; value: string; trend: string; spark: number[]; tone?: "warning" | "success"; active: boolean }) {
   return (
-    <article className="dashboard-kpi">
+    <article className={`dashboard-kpi${active ? "" : " is-empty"}`}>
       <div className="metric-label">{label}</div>
       <div className="dashboard-kpi-value">{value}</div>
       <div className={`kpi-trend ${tone ?? ""}`}>{trend}</div>
-      <div className="sparkline" aria-hidden="true">{spark.map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}</div>
+      <div className="sparkline" aria-hidden="true">
+        {(active ? spark : [8,8,8,8,8,8,8]).map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}
+      </div>
     </article>
+  );
+}
+
+function DashboardEmpty({
+  icon,
+  title,
+  copy,
+  href,
+  action,
+  compact = false,
+}: {
+  icon: "chart" | "carrier";
+  title: string;
+  copy: string;
+  href: string;
+  action: string;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`dashboard-empty${compact ? " compact" : ""}`}>
+      <span className="dashboard-empty-icon" aria-hidden="true">
+        {icon === "chart" ? (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+            <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />
+          </svg>
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+            <circle cx="8" cy="8" r="3" />
+            <circle cx="16.5" cy="9.5" r="2.5" />
+            <path d="M2.5 20c.7-4.1 2.5-6 5.5-6s4.9 1.9 5.5 6M14 15c3.1.2 5.1 1.8 6 5" />
+          </svg>
+        )}
+      </span>
+      <strong>{title}</strong>
+      <p>{copy}</p>
+      <a className="dashboard-empty-link" href={href}>{action} <span>→</span></a>
+    </div>
   );
 }
 
