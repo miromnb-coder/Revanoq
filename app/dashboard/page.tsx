@@ -82,9 +82,9 @@ export default async function DashboardPage({
   const claimedAmount = disputes.filter((dispute) => dispute.status !== "rejected" && dispute.status !== "closed").reduce((sum, dispute) => sum + Number(dispute.disputed_amount ?? 0), 0);
   const recoveredAmount = disputes.filter((dispute) => dispute.status === "credited").reduce((sum, dispute) => sum + Number(dispute.credited_amount ?? 0), 0);
 
-  const runMap = new Map(runs.map((run) => [run.id, run.invoice_id]));
-  const invoiceMap = new Map(invoices.map((invoice) => [invoice.id, invoice]));
-  const carrierMap = new Map(carriers.map((carrier) => [carrier.id, carrier.name]));
+  const runMap = new Map<string, string>(runs.map((run) => [String(run.id), String(run.invoice_id)] as [string, string]));
+  const invoiceMap = new Map(invoices.map((invoice) => [String(invoice.id), invoice]));
+  const carrierMap = new Map<string, string>(carriers.map((carrier) => [String(carrier.id), String(carrier.name)] as [string, string]));
 
   const recentFindings = findings.slice(0, 5).map((finding) => {
     const invoiceId = runMap.get(finding.audit_run_id);
@@ -102,7 +102,7 @@ export default async function DashboardPage({
     carrierTotals.set(name, (carrierTotals.get(name) ?? 0) + Math.max(Number(finding.variance_amount ?? 0), 0));
   }
 
-  const carrierRanking = [...carrierTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const carrierRanking: Array<[string, number]> = [...carrierTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
   const carrierMax = Math.max(...carrierRanking.map(([, amount]) => amount), 1);
 
   const findingTypeTotals = new Map<string, number>();
@@ -112,7 +112,10 @@ export default async function DashboardPage({
     findingTypeTotals.set(finding.finding_type, (findingTypeTotals.get(finding.finding_type) ?? 0) + amount);
   }
 
-  const typeRanking = [...findingTypeTotals.entries()].sort((a, b) => b[1] - a[1]);
+  const typeRanking: Array<[string, number]> = [...findingTypeTotals.entries()].sort((a, b) => b[1] - a[1]);
+  const displayTypeRanking: Array<[string, number]> = typeRanking.length
+    ? typeRanking
+    : [["rate_mismatch", 0], ["fuel_surcharge", 0], ["accessorial_fee", 0]];
   const typeTotal = Math.max(typeRanking.reduce((sum, [, value]) => sum + value, 0), 1);
   const monthBars = buildMonthBars(invoices, findings, runMap);
 
@@ -158,7 +161,7 @@ export default async function DashboardPage({
           <div className="breakdown-content">
             <div className="donut-chart"><div><strong>{money(discrepancyAmount)}</strong><span>yhteensä</span></div></div>
             <div className="breakdown-list">
-              {(typeRanking.length ? typeRanking : [["rate_mismatch", 0], ["fuel_surcharge", 0], ["accessorial_fee", 0]]).slice(0, 5).map(([type, amount], index) => (
+              {displayTypeRanking.slice(0, 5).map(([type, amount], index) => (
                 <div key={type}><span><i className={`dot dot-${index + 1}`} /> {findingNames[type] || type}</span><strong>{Math.round((amount / typeTotal) * 100)} %</strong></div>
               ))}
             </div>
