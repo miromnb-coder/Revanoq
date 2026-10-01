@@ -58,17 +58,19 @@ export function AppShell({
       </aside>
 
       <main className="main">
-        <div className="topbar">
-          <div className="topbar-context">
-            <span className="topbar-dot" />
-            Freight cost intelligence
+        <div className="workspace-surface">
+          <div className="topbar">
+            <div className="topbar-context">
+              <span className="topbar-dot" />
+              Freight cost intelligence
+            </div>
+            <form action={logout}>
+              <button className="button button-quiet" type="submit">Kirjaudu ulos</button>
+            </form>
           </div>
-          <form action={logout}>
-            <button className="button button-quiet" type="submit">Kirjaudu ulos</button>
-          </form>
-        </div>
 
-        {children}
+          {children}
+        </div>
       </main>
     </div>
   );
