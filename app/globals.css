@@ -4359,40 +4359,22 @@ body {
   content: "";
   position: absolute;
   z-index: 2;
-  top: -128px;
+  top: -138px;
   left: 0;
   width: 100%;
-  height: 176px;
+  height: 184px;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 8% 77%, rgba(24, 53, 55, .96) 0 1.35px, transparent 1.65px) 0 0 / 7px 6px,
-    radial-gradient(ellipse at 62% 72%, rgba(24, 53, 55, .82) 0 1.15px, transparent 1.5px) 2px 1px / 9px 7px,
-    radial-gradient(ellipse at 34% 82%, rgba(30, 60, 61, .62) 0 1px, transparent 1.35px) 4px 3px / 11px 9px,
-    radial-gradient(ellipse at 78% 86%, rgba(241, 241, 237, .46) 0 1px, transparent 1.35px) 1px 4px / 10px 8px,
-    linear-gradient(
-      to bottom,
-      #f1f1ee 0%,
-      rgba(241, 241, 238, .98) 14%,
-      rgba(226, 229, 225, .94) 29%,
-      rgba(139, 158, 156, .76) 49%,
-      rgba(57, 88, 89, .92) 70%,
-      #1d3638 92%,
-      #1d3638 100%
-    );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    #000 18%,
-    rgba(0,0,0,.98) 40%,
-    #000 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    #000 18%,
-    rgba(0,0,0,.98) 40%,
-    #000 100%
-  );
+    radial-gradient(circle at 12% 72%, rgba(43, 72, 73, .26), transparent 24rem),
+    linear-gradient(120deg, #193638 0%, #1f3334 45%, #202c2d 100%);
+  -webkit-mask-image: url("/dither-mask.svg");
+  mask-image: url("/dither-mask.svg");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center bottom;
+  mask-position: center bottom;
 }
 
 .rq-landing-lower-inner {
@@ -4542,14 +4524,8 @@ body {
   }
 
   .rq-landing-lower::before {
-    top: -94px;
-    height: 134px;
-    background-size:
-      7px 6px,
-      9px 7px,
-      11px 9px,
-      10px 8px,
-      auto;
+    top: -104px;
+    height: 142px;
   }
 
   .rq-landing-lower-inner {
